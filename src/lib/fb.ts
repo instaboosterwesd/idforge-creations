@@ -14,7 +14,7 @@ async function req<T>(path: string, method = "GET", body?: unknown): Promise<T> 
   const r = await fetch(`${DB}/${path}.json`, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? null : JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`Database error ${r.status}`);
   return r.json();
