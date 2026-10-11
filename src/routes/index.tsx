@@ -315,12 +315,20 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s || !data) return [];
-    const matches = data.filter((p) => p.name.toLowerCase().includes(s));
-    matches.sort((a, b) => {
-      const aw = a.name.toLowerCase().startsWith(s) ? 0 : 1;
-      const bw = b.name.toLowerCase().startsWith(s) ? 0 : 1;
-      return aw - bw || a.name.localeCompare(b.name);
-    });
+    const matches = data
+      .map((p) => {
+        const name = p.name.toLowerCase();
+        const code = p.invitecode.toLowerCase();
+        const domain = (p.domain ?? "").toLowerCase();
+        const tg = (p.telegram ?? "").toLowerCase();
+        const field =
+          name.startsWith(s) ? 0 :
+          name.includes(s) ? 1 :
+          code.includes(s) || domain.includes(s) || tg.includes(s) ? 2 : 99;
+        return { p, field };
+      })
+      .filter((m) => m.field < 99)
+      .sort((a, b) => a.field - b.field || a.p.name.localeCompare(b.p.name));
     return matches.slice(0, 40);
   }, [q, data]);
 
