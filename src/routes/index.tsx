@@ -354,6 +354,7 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
             >
               <span className="block truncate text-sm font-medium">{p.name}</span>
               <span className="block truncate font-mono text-xs text-muted-foreground">{p.invitecode}</span>
+              {p.domain && <span className="block truncate font-mono text-[11px] text-muted-foreground/70">{p.domain}</span>}
             </button>
           ))}
         </div>
