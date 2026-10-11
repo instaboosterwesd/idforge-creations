@@ -97,6 +97,19 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [msg, setMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const pickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true); setMsg("");
+    try {
+      const url = await uploadImage(file);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (x) { setMsg((x as Error).message); }
+    setUploading(false);
+  };
 
   const load = async () => {
     try { const [a, b] = await Promise.all([fb.listApps(), fb.listBin()]); setApps(a); setBin(b); }
