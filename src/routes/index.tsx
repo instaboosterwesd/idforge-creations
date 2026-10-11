@@ -315,12 +315,20 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s || !data) return [];
-    const matches = data.filter((p) => p.name.toLowerCase().includes(s));
-    matches.sort((a, b) => {
-      const aw = a.name.toLowerCase().startsWith(s) ? 0 : 1;
-      const bw = b.name.toLowerCase().startsWith(s) ? 0 : 1;
-      return aw - bw || a.name.localeCompare(b.name);
-    });
+    const matches = data
+      .map((p) => {
+        const name = p.name.toLowerCase();
+        const code = p.invitecode.toLowerCase();
+        const domain = (p.domain ?? "").toLowerCase();
+        const tg = (p.telegram ?? "").toLowerCase();
+        const field =
+          name.startsWith(s) ? 0 :
+          name.includes(s) ? 1 :
+          code.includes(s) || domain.includes(s) || tg.includes(s) ? 2 : 99;
+        return { p, field };
+      })
+      .filter((m) => m.field < 99)
+      .sort((a, b) => a.field - b.field || a.p.name.localeCompare(b.p.name));
     return matches.slice(0, 40);
   }, [q, data]);
 
@@ -337,7 +345,7 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
         <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-2xl border border-border bg-card shadow-lg">
           {hits.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{data ? "No match" : "Loading…"}</p>
-          ) : hits.map((p) => (
+          ) : hits.map(({ p }) => (
             <button
               key={p.id}
               type="button"
@@ -346,6 +354,7 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
             >
               <span className="block truncate text-sm font-medium">{p.name}</span>
               <span className="block truncate font-mono text-xs text-muted-foreground">{p.invitecode}</span>
+              {p.domain && <span className="block truncate font-mono text-[11px] text-muted-foreground/70">{p.domain}</span>}
             </button>
           ))}
         </div>
