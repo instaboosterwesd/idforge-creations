@@ -345,7 +345,7 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
         <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-2xl border border-border bg-card shadow-lg">
           {hits.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">{data ? "No match" : "Loading…"}</p>
-          ) : hits.map((p) => (
+          ) : hits.map(({ p }) => (
             <button
               key={p.id}
               type="button"
