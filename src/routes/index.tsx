@@ -16,11 +16,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const empty: Vars = { deposit: "", name: "", logo: "", telegram: "", domain: "", invitecode: "" };
+const empty: Vars = { deposit: "", name: "", image: "", telegram: "", domain: "", invitecode: "" };
 const FIELDS: { k: keyof Vars; label: string; ph: string }[] = [
   { k: "name", label: "Name", ph: "My App" },
   { k: "deposit", label: "Deposit", ph: "100" },
-  { k: "logo", label: "Logo URL", ph: "https://…/logo.png" },
+  { k: "image", label: "Image URL", ph: "https://i.ibb.co/…/24.jpg" },
   { k: "telegram", label: "Telegram", ph: "https://t.me/…" },
   { k: "domain", label: "Domain", ph: "https://aap-ki-website.com" },
   { k: "invitecode", label: "Invite code", ph: "ABC123" },
@@ -91,7 +91,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     if (!form.name.trim()) return setMsg("Name zaroori hai");
     const id = editing ?? (customId.trim().replace(/[.#$[\]/]/g, "") || genId());
     if (!editing && (apps[id] || bin[id])) return setMsg("Ye ID pehle se hai");
-    await fb.putApp(id, { status: "ok", variables: form });
+    await fb.putApp(id, { switch: "ON", variables: form });
     setCreated(editing ? null : id);
     setMsg(editing ? `Updated ${id}` : "");
     setForm(empty); setCustomId(""); setEditing(null);
