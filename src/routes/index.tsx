@@ -2,9 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Lock, KeyRound, LogOut, Plus, X, Copy, Pencil, Pause, Square, Trash2,
-  RotateCcw, Search, Globe, User, IndianRupee, Image as ImageIcon, Send, Ticket, Fingerprint,
+  RotateCcw, Search, Globe, User, IndianRupee, Image as ImageIcon, Send, Ticket, Fingerprint, Upload,
 } from "lucide-react";
 import { fb, genId, type AppRec, type Vars } from "@/lib/fb";
+
+const IMGBB_KEY = "5a449a45a5f05d8f16b450f1e3a7f6af";
+
+async function uploadImage(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("image", file);
+  const r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
+  const j = await r.json();
+  if (!r.ok || !j?.data?.url) throw new Error(j?.error?.message ?? "Upload failed");
+  return j.data.url as string;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,6 +97,19 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [msg, setMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const pickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true); setMsg("");
+    try {
+      const url = await uploadImage(file);
+      setForm((f) => ({ ...f, image: url }));
+    } catch (x) { setMsg((x as Error).message); }
+    setUploading(false);
+  };
 
   const load = async () => {
     try { const [a, b] = await Promise.all([fb.listApps(), fb.listBin()]); setApps(a); setBin(b); }
@@ -154,7 +178,18 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             )}
             {FIELDS.map((f) => (
               <label key={f.k} className="m3-field"><span className="inline-flex items-center gap-1.5"><f.icon className="h-3.5 w-3.5" /> {f.label}</span>
-                <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} /></label>
+                {f.k === "image" ? (
+                  <div className="flex gap-2">
+                    <input className="flex-1" value={form.image} placeholder={f.ph} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+                    <label className="m3-btn-tonal inline-flex shrink-0 cursor-pointer items-center gap-1.5">
+                      <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={pickImage} />
+                    </label>
+                  </div>
+                ) : (
+                  <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} />
+                )}
+              </label>
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
