@@ -176,8 +176,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               <label className="m3-field"><span>App ID (leave empty for auto)</span>
                 <input value={customId} onChange={(e) => setCustomId(e.target.value)} placeholder="auto-generate" /></label>
             )}
-            {FIELDS.map((f) => (
-              <label key={f.k} className="m3-field"><span className="inline-flex items-center gap-1.5"><f.icon className="h-3.5 w-3.5" /> {f.label}</span>
+            {FIELDS.map((f) => (<div key={f.k} className="contents">
+              {f.k === "invitecode" && <InvitePresetSearch onPick={(v) => setForm((fm) => ({ ...fm, invitecode: v }))} />}
+              <label className="m3-field"><span className="inline-flex items-center gap-1.5"><f.icon className="h-3.5 w-3.5" /> {f.label}</span>
                 {f.k === "image" ? (
                   <div className="flex gap-2">
                     <input className="flex-1" value={form.image} placeholder={f.ph} onChange={(e) => setForm({ ...form, image: e.target.value })} />
@@ -190,7 +191,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                   <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} />
                 )}
               </label>
-            ))}
+            </div>))}
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="m3-btn inline-flex items-center gap-2">
