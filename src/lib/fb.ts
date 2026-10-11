@@ -3,12 +3,12 @@ export const DB = "https://yususj-default-rtdb.firebaseio.com";
 export type Vars = {
   deposit: string;
   name: string;
-  logo: string;
+  image: string;
   telegram: string;
   domain: string;
   invitecode: string;
 };
-export type AppRec = { status: string; variables: Vars; pausedAs?: string };
+export type AppRec = { switch: "ON" | "OFF"; variables: Vars; pausedAs?: string };
 
 async function req<T>(path: string, method = "GET", body?: unknown): Promise<T> {
   const r = await fetch(`${DB}/${path}.json`, {
@@ -34,7 +34,7 @@ export const fb = {
   },
   async resume(id: string, rec: AppRec) {
     const { pausedAs: _p, ...clean } = rec;
-    await req(`apps/${id}`, "PUT", { ...clean, status: "ok" });
+    await req(`apps/${id}`, "PUT", { ...clean, switch: "ON" });
     await req(`bin/${id}`, "DELETE");
   },
   delBin: (id: string) => req(`bin/${id}`, "DELETE"),

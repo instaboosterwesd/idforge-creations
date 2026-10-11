@@ -16,11 +16,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const empty: Vars = { deposit: "", name: "", logo: "", telegram: "", domain: "", invitecode: "" };
+const empty: Vars = { deposit: "", name: "", image: "", telegram: "", domain: "", invitecode: "" };
 const FIELDS: { k: keyof Vars; label: string; ph: string }[] = [
   { k: "name", label: "Name", ph: "My App" },
   { k: "deposit", label: "Deposit", ph: "100" },
-  { k: "logo", label: "Logo URL", ph: "https://…/logo.png" },
+  { k: "image", label: "Image URL", ph: "https://i.ibb.co/…/24.jpg" },
   { k: "telegram", label: "Telegram", ph: "https://t.me/…" },
   { k: "domain", label: "Domain", ph: "https://aap-ki-website.com" },
   { k: "invitecode", label: "Invite code", ph: "ABC123" },
@@ -91,7 +91,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     if (!form.name.trim()) return setMsg("Name zaroori hai");
     const id = editing ?? (customId.trim().replace(/[.#$[\]/]/g, "") || genId());
     if (!editing && (apps[id] || bin[id])) return setMsg("Ye ID pehle se hai");
-    await fb.putApp(id, { status: "ok", variables: form });
+    await fb.putApp(id, { switch: "ON", variables: form });
     setCreated(editing ? null : id);
     setMsg(editing ? `Updated ${id}` : "");
     setForm(empty); setCustomId(""); setEditing(null);
@@ -158,16 +158,16 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           {list.map(([id, r]) => (
             <article key={id} className="m3-card space-y-3 p-5">
               <div className="flex items-center gap-3">
-                {r.variables?.logo ? <img src={r.variables.logo} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                {r.variables?.image ? <img src={r.variables.image} alt="" className="h-10 w-10 rounded-xl object-cover" />
                   : <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground">{r.variables?.name?.[0] ?? "?"}</div>}
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-medium">{r.variables?.name}</h3>
                   <code className="text-xs text-muted-foreground">{id}</code>
                 </div>
-                <span className="rounded-full bg-secondary px-3 py-1 text-xs">{tab === "live" ? r.status : r.pausedAs}</span>
+                <span className="rounded-full bg-secondary px-3 py-1 text-xs">{tab === "live" ? r.switch : r.pausedAs}</span>
               </div>
               <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                {FIELDS.filter((f) => f.k !== "name" && f.k !== "logo").map((f) => (
+                {FIELDS.filter((f) => f.k !== "name" && f.k !== "image").map((f) => (
                   <div key={f.k} className="min-w-0"><dt className="text-muted-foreground">{f.label}</dt><dd className="truncate">{r.variables?.[f.k] || "—"}</dd></div>
                 ))}
               </dl>
