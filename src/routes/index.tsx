@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import {
+  Lock, KeyRound, LogOut, Plus, X, Copy, Pencil, Pause, Square, Trash2,
+  RotateCcw, Search, Globe, User, IndianRupee, Image as ImageIcon, Send, Ticket, Fingerprint,
+} from "lucide-react";
 import { fb, genId, type AppRec, type Vars } from "@/lib/fb";
 
 export const Route = createFileRoute("/")({
@@ -17,13 +21,13 @@ export const Route = createFileRoute("/")({
 });
 
 const empty: Vars = { deposit: "", name: "", image: "", telegram: "", domain: "", invitecode: "" };
-const FIELDS: { k: keyof Vars; label: string; ph: string }[] = [
-  { k: "name", label: "Name", ph: "My App" },
-  { k: "deposit", label: "Deposit", ph: "100" },
-  { k: "image", label: "Image URL", ph: "https://i.ibb.co/…/24.jpg" },
-  { k: "telegram", label: "Telegram", ph: "https://t.me/…" },
-  { k: "domain", label: "Domain", ph: "https://aap-ki-website.com" },
-  { k: "invitecode", label: "Invite code", ph: "ABC123" },
+const FIELDS: { k: keyof Vars; label: string; ph: string; icon: typeof User }[] = [
+  { k: "name", label: "Name", ph: "My App", icon: User },
+  { k: "deposit", label: "Deposit", ph: "100", icon: IndianRupee },
+  { k: "image", label: "Image URL", ph: "https://i.ibb.co/…/24.jpg", icon: ImageIcon },
+  { k: "telegram", label: "Telegram", ph: "https://t.me/…", icon: Send },
+  { k: "domain", label: "Domain", ph: "https://your-website.com", icon: Globe },
+  { k: "invitecode", label: "Invite code", ph: "ABC123", icon: Ticket },
 ];
 
 function Index() {
@@ -45,24 +49,26 @@ function Login({ onOk }: { onOk: () => void }) {
     setBusy(true); setErr("");
     try {
       if (pw === (await fb.getPassword())) onOk();
-      else setErr("Galat password");
+      else setErr("Incorrect password");
     } catch (x) { setErr((x as Error).message); }
     setBusy(false);
   };
   return (
     <main className="grid min-h-screen place-items-center p-4">
       <form onSubmit={submit} className="m3-card w-full max-w-sm space-y-5 p-8">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary text-2xl text-primary-foreground">🔐</div>
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
+          <Lock className="h-7 w-7" />
+        </div>
         <div className="text-center">
           <h1 className="text-2xl font-semibold">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Password daal kar login karein</p>
+          <p className="text-sm text-muted-foreground">Enter your password to sign in</p>
         </div>
         <label className="m3-field">
           <span>Password</span>
           <input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} />
         </label>
         {err && <p className="text-sm text-destructive">{err}</p>}
-        <button className="m3-btn w-full" disabled={busy}>{busy ? "Checking…" : "Login"}</button>
+        <button className="m3-btn w-full" disabled={busy}>{busy ? "Checking…" : "Sign in"}</button>
       </form>
     </main>
   );
@@ -77,6 +83,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [customId, setCustomId] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -86,15 +93,18 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   };
   useEffect(() => { load(); }, []);
 
+  const closeForm = () => { setShowForm(false); setEditing(null); setForm(empty); setCustomId(""); setCreated(null); };
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return setMsg("Name zaroori hai");
+    if (!form.name.trim()) return setMsg("Name is required");
     const id = editing ?? (customId.trim().replace(/[.#$[\]/]/g, "") || genId());
-    if (!editing && (apps[id] || bin[id])) return setMsg("Ye ID pehle se hai");
+    if (!editing && (apps[id] || bin[id])) return setMsg("This ID already exists");
     await fb.putApp(id, { switch: "ON", variables: form });
     setCreated(editing ? null : id);
     setMsg(editing ? `Updated ${id}` : "");
-    setForm(empty); setCustomId(""); setEditing(null);
+    setForm(empty); setCustomId("");
+    if (editing) closeForm();
     load();
   };
 
@@ -110,37 +120,59 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">App ID Console</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <Fingerprint className="h-6 w-6 text-primary" /> App ID Console
+        </h1>
         <div className="flex gap-2">
-          <button className="m3-btn-tonal" onClick={() => setShowPw(true)}>Password</button>
-          <button className="m3-btn-text" onClick={onLogout}>Logout</button>
+          <button className="m3-btn-tonal inline-flex items-center gap-2" onClick={() => setShowPw(true)}>
+            <KeyRound className="h-4 w-4" /> Password
+          </button>
+          <button className="m3-btn-text inline-flex items-center gap-2" onClick={onLogout}>
+            <LogOut className="h-4 w-4" /> Logout
+          </button>
         </div>
       </header>
 
-      <form onSubmit={save} className="m3-card space-y-4 p-6">
-        <h2 className="text-lg font-medium">{editing ? `Edit: ${editing}` : "Create new ID"}</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {!editing && (
-            <label className="m3-field"><span>App ID (khali chhodo = auto)</span>
-              <input value={customId} onChange={(e) => setCustomId(e.target.value)} placeholder="auto-generate" /></label>
-          )}
-          {FIELDS.map((f) => (
-            <label key={f.k} className="m3-field"><span>{f.label}</span>
-              <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} /></label>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button className="m3-btn">{editing ? "Save changes" : "Generate ID"}</button>
-          {editing && <button type="button" className="m3-btn-text" onClick={() => { setEditing(null); setForm(empty); }}>Cancel</button>}
-        </div>
-        {created && (
-          <div className="rounded-2xl bg-accent p-4 text-accent-foreground">
-            ID ban gayi: <code className="font-mono font-bold">{created}</code>
-            <button type="button" className="m3-btn-text ml-2" onClick={() => navigator.clipboard.writeText(created)}>Copy</button>
+      {!showForm && (
+        <button className="m3-btn inline-flex items-center gap-2" onClick={() => { setShowForm(true); setCreated(null); setMsg(""); }}>
+          <Plus className="h-4 w-4" /> Create ID
+        </button>
+      )}
+
+      {showForm && (
+        <form onSubmit={save} className="m3-card space-y-4 p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium">{editing ? `Edit: ${editing}` : "Create new ID"}</h2>
+            <button type="button" className="m3-btn-text inline-flex items-center gap-1" onClick={closeForm}>
+              <X className="h-4 w-4" /> Close
+            </button>
           </div>
-        )}
-        {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
-      </form>
+          <div className="grid gap-4 md:grid-cols-2">
+            {!editing && (
+              <label className="m3-field"><span>App ID (leave empty for auto)</span>
+                <input value={customId} onChange={(e) => setCustomId(e.target.value)} placeholder="auto-generate" /></label>
+            )}
+            {FIELDS.map((f) => (
+              <label key={f.k} className="m3-field"><span className="inline-flex items-center gap-1.5"><f.icon className="h-3.5 w-3.5" /> {f.label}</span>
+                <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} /></label>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="m3-btn inline-flex items-center gap-2">
+              <Plus className="h-4 w-4" /> {editing ? "Save changes" : "Generate ID"}
+            </button>
+          </div>
+          {created && (
+            <div className="flex items-center gap-2 rounded-2xl bg-accent p-4 text-accent-foreground">
+              ID created: <code className="font-mono font-bold">{created}</code>
+              <button type="button" className="m3-btn-text inline-flex items-center gap-1" onClick={() => navigator.clipboard.writeText(created)}>
+                <Copy className="h-4 w-4" /> Copy
+              </button>
+            </div>
+          )}
+          {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
+        </form>
+      )}
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -151,9 +183,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </button>
             ))}
           </div>
-          <input className="m3-search flex-1" placeholder="Search ID, name, domain…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input className="m3-search w-full pl-11" placeholder="Search ID, name, domain…" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
         </div>
-        {list.length === 0 && <p className="py-8 text-center text-muted-foreground">Kuch nahi mila</p>}
+        {list.length === 0 && <p className="py-8 text-center text-muted-foreground">Nothing found</p>}
         <div className="grid gap-3 md:grid-cols-2">
           {list.map(([id, r]) => (
             <article key={id} className="m3-card space-y-3 p-5">
@@ -173,13 +208,25 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </dl>
               <div className="flex flex-wrap gap-2">
                 {tab === "live" ? (<>
-                  <button className="m3-btn-tonal" onClick={() => { setEditing(id); setForm({ ...empty, ...r.variables }); setCreated(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</button>
-                  <button className="m3-btn-tonal" onClick={() => act(() => fb.toBin(id, r, "paused"))}>Pause</button>
-                  <button className="m3-btn-tonal" onClick={() => act(() => fb.toBin(id, r, "stopped"))}>Stop</button>
-                  <button className="m3-btn-danger" onClick={() => confirm(`Delete ${id}?`) && act(() => fb.delApp(id))}>Delete</button>
+                  <button className="m3-btn-tonal inline-flex items-center gap-1.5" onClick={() => { setEditing(id); setForm({ ...empty, ...r.variables }); setShowForm(true); setCreated(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button className="m3-btn-tonal inline-flex items-center gap-1.5" onClick={() => act(() => fb.toBin(id, r, "paused"))}>
+                    <Pause className="h-3.5 w-3.5" /> Pause
+                  </button>
+                  <button className="m3-btn-tonal inline-flex items-center gap-1.5" onClick={() => act(() => fb.toBin(id, r, "stopped"))}>
+                    <Square className="h-3.5 w-3.5" /> Stop
+                  </button>
+                  <button className="m3-btn-danger inline-flex items-center gap-1.5" onClick={() => confirm(`Delete ${id}?`) && act(() => fb.delApp(id))}>
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
                 </>) : (<>
-                  <button className="m3-btn" onClick={() => act(() => fb.resume(id, r))}>Resume</button>
-                  <button className="m3-btn-danger" onClick={() => confirm(`Permanently delete ${id}?`) && act(() => fb.delBin(id))}>Delete forever</button>
+                  <button className="m3-btn inline-flex items-center gap-1.5" onClick={() => act(() => fb.resume(id, r))}>
+                    <RotateCcw className="h-3.5 w-3.5" /> Resume
+                  </button>
+                  <button className="m3-btn-danger inline-flex items-center gap-1.5" onClick={() => confirm(`Permanently delete ${id}?`) && act(() => fb.delBin(id))}>
+                    <Trash2 className="h-3.5 w-3.5" /> Delete forever
+                  </button>
                 </>)}
               </div>
             </article>
@@ -196,14 +243,14 @@ function PwDialog({ onClose }: { onClose: () => void }) {
   const [cur, setCur] = useState(""); const [nw, setNw] = useState(""); const [m, setM] = useState("");
   const go = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cur !== (await fb.getPassword())) return setM("Current password galat hai");
-    if (nw.length < 3) return setM("Kam se kam 3 characters");
-    await fb.setPassword(nw); setM("Password badal gaya ✓"); setCur(""); setNw("");
+    if (cur !== (await fb.getPassword())) return setM("Current password is incorrect");
+    if (nw.length < 3) return setM("At least 3 characters");
+    await fb.setPassword(nw); setM("Password changed ✓"); setCur(""); setNw("");
   };
   return (
     <div className="fixed inset-0 grid place-items-center bg-foreground/40 p-4" onClick={onClose}>
       <form onSubmit={go} onClick={(e) => e.stopPropagation()} className="m3-card w-full max-w-sm space-y-4 p-6">
-        <h2 className="text-lg font-medium">Change password</h2>
+        <h2 className="flex items-center gap-2 text-lg font-medium"><KeyRound className="h-5 w-5" /> Change password</h2>
         <label className="m3-field"><span>Current</span><input type="password" value={cur} onChange={(e) => setCur(e.target.value)} /></label>
         <label className="m3-field"><span>New</span><input type="password" value={nw} onChange={(e) => setNw(e.target.value)} /></label>
         {m && <p className="text-sm text-muted-foreground">{m}</p>}
