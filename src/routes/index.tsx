@@ -2,9 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Lock, KeyRound, LogOut, Plus, X, Copy, Pencil, Pause, Square, Trash2,
-  RotateCcw, Search, Globe, User, IndianRupee, Image as ImageIcon, Send, Ticket, Fingerprint,
+  RotateCcw, Search, Globe, User, IndianRupee, Image as ImageIcon, Send, Ticket, Fingerprint, Upload,
 } from "lucide-react";
 import { fb, genId, type AppRec, type Vars } from "@/lib/fb";
+
+const IMGBB_KEY = "5a449a45a5f05d8f16b450f1e3a7f6af";
+
+async function uploadImage(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("image", file);
+  const r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
+  const j = await r.json();
+  if (!r.ok || !j?.data?.url) throw new Error(j?.error?.message ?? "Upload failed");
+  return j.data.url as string;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
