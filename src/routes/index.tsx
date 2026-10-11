@@ -295,3 +295,55 @@ function PwDialog({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
+type Preset = { id: string; name: string; invitecode: string; domain: string; telegram: string };
+let presetCache: Preset[] | null = null;
+
+function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
+  const [q, setQ] = useState("");
+  const [data, setData] = useState<Preset[] | null>(presetCache);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (presetCache || !q) return;
+    import("@/data/apps-presets.json").then((m) => {
+      presetCache = (m.default as Preset[]).filter((p) => p.invitecode);
+      setData(presetCache);
+    });
+  }, [q]);
+
+  const hits = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s || !data) return [];
+    return data.filter((p) => p.name.toLowerCase().includes(s) || p.invitecode.toLowerCase().includes(s)).slice(0, 30);
+  }, [q, data]);
+
+  return (
+    <label className="m3-field relative md:col-span-2">
+      <span className="inline-flex items-center gap-1.5"><Search className="h-3.5 w-3.5" /> Find invite code format</span>
+      <input
+        value={q}
+        placeholder="Type a panel name, e.g. Manvendra"
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+      />
+      {open && q.trim() && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-2xl border border-border bg-card shadow-lg">
+          {hits.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">{data ? "No match" : "Loading…"}</p>
+          ) : hits.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="block w-full border-b border-border/50 px-4 py-2.5 text-left last:border-0 hover:bg-secondary"
+              onClick={() => { onPick(p.invitecode); setOpen(false); setQ(p.name); }}
+            >
+              <span className="block truncate text-sm font-medium">{p.name}</span>
+              <span className="block truncate font-mono text-xs text-muted-foreground">{p.invitecode}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </label>
+  );
+}
