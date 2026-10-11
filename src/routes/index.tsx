@@ -315,7 +315,13 @@ function InvitePresetSearch({ onPick }: { onPick: (code: string) => void }) {
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s || !data) return [];
-    return data.filter((p) => p.name.toLowerCase().includes(s) || p.invitecode.toLowerCase().includes(s)).slice(0, 30);
+    const matches = data.filter((p) => p.name.toLowerCase().includes(s));
+    matches.sort((a, b) => {
+      const aw = a.name.toLowerCase().startsWith(s) ? 0 : 1;
+      const bw = b.name.toLowerCase().startsWith(s) ? 0 : 1;
+      return aw - bw || a.name.localeCompare(b.name);
+    });
+    return matches.slice(0, 40);
   }, [q, data]);
 
   return (
