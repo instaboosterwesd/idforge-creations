@@ -178,7 +178,18 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             )}
             {FIELDS.map((f) => (
               <label key={f.k} className="m3-field"><span className="inline-flex items-center gap-1.5"><f.icon className="h-3.5 w-3.5" /> {f.label}</span>
-                <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} /></label>
+                {f.k === "image" ? (
+                  <div className="flex gap-2">
+                    <input className="flex-1" value={form.image} placeholder={f.ph} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+                    <label className="m3-btn-tonal inline-flex shrink-0 cursor-pointer items-center gap-1.5">
+                      <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
+                      <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={pickImage} />
+                    </label>
+                  </div>
+                ) : (
+                  <input value={form[f.k]} placeholder={f.ph} onChange={(e) => setForm({ ...form, [f.k]: e.target.value })} />
+                )}
+              </label>
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
